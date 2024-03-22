@@ -8,12 +8,17 @@ library(viridis)
 # library(rgdal)
 library(mapSpain)
 library(climaemet)
+library(plotly)
+library(splines)
+library(VDPO)
+library(SOP)
+library(ks)
 
 # Get daily climate data for station "9434" (Madrid, for example)
 daily_data <- aemet_daily_clim(station = "all", start = "2022-01-01" , end ="2022-01-01" )
 
 prov_aemet=c(sort(unique(daily_data$provincia)))
-prov_aemet=prov_aemet[-c(27,30,43,47)] # REMOVING THE ISLANDS
+prov_aemet=prov_aemet[-c(9,17,27,30,36,43,47)] # REMOVING THE ISLANDS AND CEUTA AND MELILLA
 
 prov_index=sapply(X = prov_aemet,FUN = function(x) which(daily_data$provincia==x))
 
@@ -21,7 +26,10 @@ prov_index=sapply(X = prov_aemet,FUN = function(x) which(daily_data$provincia==x
 # length(which(daily_data$provincia=="STA. CRUZ DE TENERIFE")),
 # length(which(daily_data$provincia=="ILLES BALEARS")),
 # length(which(daily_data$provincia=="SANTA CRUZ DE TENERIFE")),
-# length(which(daily_data$provincia=="LAS PALMAS")))==length(daily_data$tmed)
+# length(which(daily_data$provincia=="MELILLA")),
+# length(which(daily_data$provincia=="CEUTA")),
+# length(which(daily_data$provincia=="LAS PALMAS")),
+# length(which(daily_data$provincia=="BALEARES")))==length(daily_data$tmed)
 
 aux=sapply(seq_along(prov_index), function(x) mean(daily_data$tmed[prov_index[[x]]],na.rm=TRUE))
 mean_temp=data.frame(Temperature=aux, Province=prov_aemet)
@@ -104,11 +112,15 @@ data_NDVI[["latitude"]]=NDVI_df$y
 data_NDVI[["province"]]=df_final$prov.shortname.es
 data_NDVI=data_NDVI[-which(is.na(data_NDVI$province)),]
 
+data_NDVI=data_NDVI[-which(data_NDVI$province=="Melilla"),]
+data_NDVI=data_NDVI[-which(data_NDVI$province=="Ceuta"),]
+data_NDVI=data_NDVI[-which(data_NDVI$province=="Baleares"),]
+
 data_NDVI_ordered=data_NDVI[order(data_NDVI$province),]
 
 prov_name=list(unique(data_NDVI_ordered$province))
 
-data_prov=data_NDVI_ordered[which(data_NDVI_ordered$province=="Orense"),]
+data_prov=data_NDVI_ordered[which(data_NDVI_ordered$province=="Lugo"),]
 
 # "LUGO" 114X171
 
@@ -117,4 +129,3 @@ data_prov=data_NDVI_ordered[which(data_NDVI_ordered$province=="Orense"),]
 # aux=lapply(unique(data_NDVI[["province"]]), function(x) which(duplicated(data_NDVI[which(data_NDVI$province==as.character(x)),2:3])==TRUE))
 # 
 # all.equal(sum(sapply(aux, function(x) is_empty(x))),length(aux))
-
